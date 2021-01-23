@@ -32,8 +32,10 @@
                  @refreshList="queryList" ref="addRef"></Add>
         </el-row>
 
-        <el-table border style="width: 100%" :data="tableData"
-                  tooltip-effect="dark" @selection-change="selsChange">
+        <el-table border style="width: 100%" :data="tableData" max-height="470px" min-height="470px"
+                  tooltip-effect="dark" @selection-change="selsChange"
+                  :cell-style="tableRowStyleName" highlight-current-row
+                  show-summary ><!--:summary-method="summary" -->
             <el-table-column fixed type="selection" width="55"></el-table-column>
             <el-table-column prop="formatId" label="编号" width="100"></el-table-column>
             <el-table-column prop="commodity.name" label="商品名称" width="100"></el-table-column>
@@ -48,7 +50,7 @@
                 <template slot-scope="scope">
                     <el-button size="small" round @click="handleUpdStatus(scope.row)"
                        :type="scope.row.status == 0 ? 'primary' : scope.row.status == 1 ? 'success' : 'danger'">
-                        {{scope.row.status==0?'未出库':scope.row.status==1?'已出库':'退货'}}
+                        {{scope.row.status==0?'未出库':scope.row.status==1?'已出库':'已退货'}}
                     </el-button>
                 </template>
             </el-table-column>
@@ -125,6 +127,12 @@
             Update
         },
         methods: {
+            //设置退货订单背景为红色
+            tableRowStyleName({row}) {
+                if(row.status == 2){
+                    return 'background-color: #f8a9a0';
+                }
+            },
             //查询总价
             getSumPrice:function(row){
                 return row.amount*row.price;
@@ -293,7 +301,7 @@
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
-                    axios.get("http://localhost:7001/delBatch?ids="+ids).then(res=>{
+                    axios.get("http://localhost:7001/delBatchOrder?ids="+ids).then(res=>{
                         //刷新table
                         this.refresh();
                     }).catch(function (error) {
@@ -345,12 +353,7 @@
                 console.log(res)
                 console.log(res.data)
                 console.log(res.data.data)
-                // this.listId=String.format("AH%05d", res.data.data.did);
                 this.tableData=res.data.data;
-                //总价=单价*数量
-                // this.sumPrice=res.data.data.price*res.data.data.amount;
-                //总成本=成本*数量+其他成本
-                // this.sumCost=res.data.data.amount*res.data.data.cost_price+res.data.data.other_cost;
                 this.total=res.data.count;
             }).catch(function (error) {
                 console.log(error)
@@ -360,5 +363,11 @@
 </script>
 
 <style scoped>
+    .el-table .warning-row {
+        background: #f8a9a0;
+    }
 
+    .el-table .success-row {
+        background: #f0f9eb;
+    }
 </style>
